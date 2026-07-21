@@ -1,0 +1,33 @@
+{
+  "agentName": "Agente Red",
+  "languageCode": "es-MX",
+  "description": "Script de entrevista piloto para captura de información de proyectos, ingresos e ideas de crecimiento para el documento de Google.",
+  "welcomeMessage": "Hola, soy el Agente Red, tu asistente de voz. Te haré tres preguntas para completar tu documento de Google Docs. ¿Comenzamos?",
+  "questions": [
+    {
+      "id": "projects_managed",
+      "key": "projects",
+      "title": "¿Qué proyectos estás gestionando actualmente?",
+      "instructions": "Por favor, describe los proyectos que tienes a tu cargo actualmente, detallando nombres, objetivos o estado de cada uno.",
+      "placeholder": "Actualmente gestiono...",
+      "ttsPrompt": "¿Qué proyectos estás gestionando actualmente?"
+    },
+    {
+      "id": "income_sources",
+      "key": "income",
+      "title": "¿Cuáles son las principales fuentes de ingresos?",
+      "instructions": "Por favor, detalla cuáles son las principales vías o fuentes a través de las cuales ingresa dinero o financiamiento.",
+      "placeholder": "Las principales fuentes de ingresos son...",
+      "ttsPrompt": "¿Cuáles son las principales fuentes de ingresos?"
+    },
+    {
+      "id": "growth_ideas",
+      "key": "growth",
+      "title": "¿Qué ideas de crecimiento tienes?",
+      "instructions": "Cuéntame sobre las estrategias, planes o ideas que tienes contempladas para expandir, mejorar o hacer crecer tus actividades.",
+      "placeholder": "Mis ideas de crecimiento consisten en...",
+      "ttsPrompt": "¿Qué ideas de crecimiento tienes?"
+    }
+  ],
+  "completionMessage": "¡Excelente! Hemos capturado todas tus respuestas. Estoy procesando los datos para actualizar tu documento de Google Docs."
+}
