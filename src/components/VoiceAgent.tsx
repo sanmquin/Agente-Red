@@ -8,9 +8,19 @@ interface VoiceAgentProps {
   responses: Responses;
   setResponses: React.Dispatch<React.SetStateAction<Responses>>;
   onResetSetup: () => void;
+  selectedVoiceName: string;
+  updateMode: 'single' | 'realtime';
 }
 
-export default function VoiceAgent({ script, docId, responses, setResponses, onResetSetup }: VoiceAgentProps) {
+export default function VoiceAgent({
+  script,
+  docId,
+  responses,
+  setResponses,
+  onResetSetup,
+  selectedVoiceName,
+  updateMode
+}: VoiceAgentProps) {
   const [currentStep, setCurrentStep] = useState<string>('welcome'); // 'welcome', 'question_0', 'question_1', 'question_2', 'processing', 'completed'
   const [editedResponse, setEditedResponse] = useState<string>('');
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -80,11 +90,14 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'es-MX';
 
-    // Find friendly, high quality Spanish voices. Avoid deep ones.
     const voices = synthRef.current.getVoices();
 
-    // Choose softer, friendly sounding voices, preferring standard female voices or high quality Google Spanish voices
-    let selectedVoice = voices.find(v => v.lang.includes('es-MX') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('sabin') || v.name.toLowerCase().includes('microsoft sabina') || v.name.toLowerCase().includes('google')));
+    // Use selectedVoiceName if configured, otherwise look for standard female voice
+    let selectedVoice = voices.find(v => v.name === selectedVoiceName);
+
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.includes('es-MX') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('sabin') || v.name.toLowerCase().includes('microsoft sabina') || v.name.toLowerCase().includes('google')));
+    }
     if (!selectedVoice) {
       selectedVoice = voices.find(v => v.lang.includes('es-MX')) || voices.find(v => v.lang.includes('es-ES')) || voices.find(v => v.lang.includes('es'));
     }
@@ -164,7 +177,7 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
     setIsListening(false);
   };
 
-  const saveResponseAndNext = (index: number) => {
+  const saveResponseAndNext = async (index: number) => {
     if (!script) return;
     stopListening();
     stopSpeaking();
@@ -176,13 +189,50 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
     };
     setResponses(updatedResponses);
 
+    // If real-time mode is selected, update Google Doc for this question immediately
+    if (updateMode === 'realtime') {
+      setBackendStatus('loading');
+      try {
+        const response = await fetch('/.netlify/functions/process-response', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            documentId: docId,
+            action: 'update-question',
+            questionKey: q.key,
+            questionTitle: q.title,
+            responseValue: editedResponse
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          console.error('Failed to update question in real-time:', data.error);
+        }
+      } catch (err) {
+        console.error('Real-time question update error:', err);
+      } finally {
+        setBackendStatus(null);
+      }
+    }
+
     if (index < script.questions.length - 1) {
       goToQuestion(index + 1);
     } else {
-      setCurrentStep('processing');
-      speakText(script.completionMessage, () => {
-        submitToGoogleDocs(updatedResponses);
-      });
+      if (updateMode === 'single') {
+        setCurrentStep('processing');
+        speakText(script.completionMessage, () => {
+          submitToGoogleDocs(updatedResponses);
+        });
+      } else {
+        // For real-time mode, since we already updated everything individually,
+        // we can just conclude directly
+        setCurrentStep('completed');
+        setBackendStatus('success');
+        speakText(script.completionMessage);
+      }
     }
   };
 
@@ -241,11 +291,11 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
               <span className={`relative inline-flex rounded-full h-3 w-3 ${isListening ? 'bg-emerald-600' : 'bg-slate-500'}`}></span>
             </span>
             <span className="text-sm font-semibold text-slate-600">
-              {isListening ? 'Listening...' : isSpeaking ? 'Agente Hablando...' : 'Agente Listo'}
+              {isListening ? 'Escuchando...' : isSpeaking ? 'Agente Hablando...' : 'Agente Listo'}
             </span>
           </div>
           <div className="text-xs bg-slate-100 px-2.5 py-1 rounded text-slate-500 font-mono">
-            Step: {currentStep}
+            Paso: {currentStep}
           </div>
         </div>
 
@@ -257,7 +307,7 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
             </div>
             <h2 className="text-2xl font-bold text-slate-800 mb-3">¡Bienvenido a Agente Verde!</h2>
             <p className="text-slate-600 max-w-md mx-auto mb-8">
-              Este agente te guiará con una voz clara y amigable para responder tres preguntas cruciales, procesándolas con IA e insertándolas de forma segura en tu Google Doc.
+              Este agente te guiará con una voz amigable para responder tres preguntas de tu proyecto, procesándolas con IA e insertándolas directamente en tu documento de Google.
             </p>
             <button
               onClick={startAssistant}
@@ -355,7 +405,7 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
             <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Procesando respuestas</h3>
             <p className="text-slate-600">
-              Agente Verde está estructurando tus respuestas and uploading the information to Google Docs...
+              El Agente Verde está estructurando tus respuestas e ingresándolas de forma segura en Google Docs...
             </p>
           </div>
         )}
@@ -368,9 +418,9 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
                   <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
                     <CheckCircle className="w-10 h-10 text-emerald-650" />
                   </div>
-                  <h2 className="text-2xl font-bold text-emerald-750 mb-1">¡Guardado con éxito!</h2>
+                  <h2 className="text-2xl font-bold text-emerald-700 mb-1">¡Guardado con éxito!</h2>
                   <p className="text-slate-600 text-sm max-w-md mx-auto">
-                    Tus respuestas han sido estructuradas por Gemini-flash e insertadas en tu Google Doc.
+                    Tus respuestas han sido procesadas con IA de forma ejecutiva y estilizada e insertadas en tu Google Doc.
                   </p>
                 </>
               ) : (
