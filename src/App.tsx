@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import DocSetup from './components/DocSetup';
@@ -6,11 +6,35 @@ import VoiceAgent from './components/VoiceAgent';
 import JsonMonitor from './components/JsonMonitor';
 import EnvDocs from './components/EnvDocs';
 
+export interface Question {
+  id: string;
+  key: 'projects' | 'income' | 'growth';
+  title: string;
+  instructions: string;
+  placeholder: string;
+  ttsPrompt: string;
+}
+
+export interface Script {
+  agentName: string;
+  languageCode: string;
+  description: string;
+  welcomeMessage: string;
+  questions: Question[];
+  completionMessage: string;
+}
+
+export interface Responses {
+  projects: string;
+  income: string;
+  growth: string;
+}
+
 export default function App() {
-  const [script, setScript] = useState(null);
-  const [docId, setDocId] = useState('');
-  const [isDocValidated, setIsDocValidated] = useState(false);
-  const [responses, setResponses] = useState({
+  const [script, setScript] = useState<Script | null>(null);
+  const [docId, setDocId] = useState<string>('');
+  const [isDocValidated, setIsDocValidated] = useState<boolean>(false);
+  const [responses, setResponses] = useState<Responses>({
     projects: '',
     income: '',
     growth: ''
@@ -19,7 +43,7 @@ export default function App() {
   useEffect(() => {
     fetch('/script.json')
       .then(res => res.json())
-      .then(data => {
+      .then((data: Script) => {
         setScript(data);
       })
       .catch(err => {

@@ -1,27 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Play, Mic, MicOff, RefreshCw, ArrowRight, Volume2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Script, Responses } from '../App';
 
-export default function VoiceAgent({ script, docId, responses, setResponses, onResetSetup }) {
-  const [currentStep, setCurrentStep] = useState('welcome'); // 'welcome', 'question_0', 'question_1', 'question_2', 'processing', 'completed'
-  const [editedResponse, setEditedResponse] = useState('');
-  const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [backendStatus, setBackendStatus] = useState(null); // 'success', 'error', 'loading'
+interface VoiceAgentProps {
+  script: Script | null;
+  docId: string;
+  responses: Responses;
+  setResponses: React.Dispatch<React.SetStateAction<Responses>>;
+  onResetSetup: () => void;
+}
 
-  const recognitionRef = useRef(null);
-  const synthRef = useRef(window.speechSynthesis);
+export default function VoiceAgent({ script, docId, responses, setResponses, onResetSetup }: VoiceAgentProps) {
+  const [currentStep, setCurrentStep] = useState<string>('welcome'); // 'welcome', 'question_0', 'question_1', 'question_2', 'processing', 'completed'
+  const [editedResponse, setEditedResponse] = useState<string>('');
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [backendStatus, setBackendStatus] = useState<'success' | 'error' | 'loading' | null>(null);
+
+  const recognitionRef = useRef<any>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(typeof window !== 'undefined' ? window.speechSynthesis : null);
 
   // STT Speech Recognition Initialization
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const rec = new SpeechRecognition();
       rec.continuous = true;
       rec.interimResults = true;
       rec.lang = 'es-MX';
 
-      rec.onresult = (event) => {
+      rec.onresult = (event: any) => {
         let interimTranscript = '';
         let finalTranscript = '';
 
@@ -39,7 +48,7 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
         }
       };
 
-      rec.onerror = (event) => {
+      rec.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         if (event.error !== 'no-speech') {
           setErrorMessage(`Error de transcripción: ${event.error}`);
@@ -62,7 +71,7 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
   }, [isListening]);
 
   // Read Text Out Loud
-  const speakText = (text, callback) => {
+  const speakText = (text: string, callback?: () => void) => {
     if (!synthRef.current) return;
 
     synthRef.current.cancel();
@@ -71,7 +80,7 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'es-MX';
 
-    // Find friendly, high quality Spanish voices. Avoid deep/disgusting ones.
+    // Find friendly, high quality Spanish voices. Avoid deep ones.
     const voices = synthRef.current.getVoices();
 
     // Choose softer, friendly sounding voices, preferring standard female voices or high quality Google Spanish voices
@@ -116,7 +125,7 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
     });
   };
 
-  const goToQuestion = (index) => {
+  const goToQuestion = (index: number) => {
     if (!script) return;
     const q = script.questions[index];
     setCurrentStep(`question_${index}`);
@@ -155,7 +164,8 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
     setIsListening(false);
   };
 
-  const saveResponseAndNext = (index) => {
+  const saveResponseAndNext = (index: number) => {
+    if (!script) return;
     stopListening();
     stopSpeaking();
 
@@ -176,7 +186,7 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
     }
   };
 
-  const submitToGoogleDocs = async (finalResponses) => {
+  const submitToGoogleDocs = async (finalResponses: Responses) => {
     setBackendStatus('loading');
 
     const payload = {
@@ -260,12 +270,12 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
 
         {script && currentStep.startsWith('question_') && (() => {
           const index = parseInt(currentStep.split('_')[1]);
-          const q = script.questions[index];
+          const q = script!.questions[index];
           return (
             <div>
               <div className="mb-4">
                 <span className="text-xs font-bold text-emerald-700 tracking-wider uppercase bg-emerald-50 px-2.5 py-1 rounded">
-                  Pregunta {index + 1} de {script.questions.length}
+                  Pregunta {index + 1} de {script!.questions.length}
                 </span>
                 <h2 className="text-xl font-bold text-slate-800 mt-3 flex items-center gap-2">
                   {q.title}
@@ -287,7 +297,7 @@ export default function VoiceAgent({ script, docId, responses, setResponses, onR
                   onChange={(e) => setEditedResponse(e.target.value)}
                   placeholder={q.placeholder}
                   className="w-full bg-transparent border-0 resize-none focus:outline-none focus:ring-0 text-slate-700 text-base"
-                  rows="4"
+                  rows={4}
                 />
 
                 {isListening && (

@@ -1,7 +1,22 @@
-const { google } = require('googleapis');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import { google } from 'googleapis';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-exports.handler = async (event, _context) => {
+interface Responses {
+  projects?: string;
+  income?: string;
+  growth?: string;
+}
+
+interface RequestBody {
+  documentId?: string;
+  responses?: Responses;
+  action?: string;
+}
+
+export const handler = async (
+  event: { httpMethod: string; body?: string },
+  _context: unknown
+) => {
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
@@ -11,7 +26,7 @@ exports.handler = async (event, _context) => {
   }
 
   try {
-    const body = JSON.parse(event.body || '{}');
+    const body = JSON.parse(event.body || '{}') as RequestBody;
     const { documentId, responses, action } = body;
 
     if (!documentId) {
@@ -28,17 +43,18 @@ exports.handler = async (event, _context) => {
     if (!googleServiceAccountEmail || !googlePrivateKey) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Missing Google credentials on the server. Please check your environment variables.' })
+        body: JSON.stringify({
+          error: 'Missing Google credentials on the server. Please check your environment variables.'
+        })
       };
     }
 
     // Authenticate with Google
-    const auth = new google.auth.JWT(
-      googleServiceAccountEmail,
-      null,
-      googlePrivateKey.replace(/\\n/g, '\n'),
-      ['https://www.googleapis.com/auth/documents']
-    );
+    const auth = new google.auth.JWT({
+      email: googleServiceAccountEmail,
+      key: googlePrivateKey.replace(/\\n/g, '\n'),
+      scopes: ['https://www.googleapis.com/auth/documents']
+    });
 
     const docs = google.docs({ version: 'v1', auth });
 
@@ -86,7 +102,7 @@ exports.handler = async (event, _context) => {
     }
 
     // Process responses using Gemini AI model (gemini-1.5-flash)
-    let structuredResult = {
+    let structuredResult: Responses = {
       projects: responses.projects,
       income: responses.income,
       growth: responses.growth
@@ -96,7 +112,7 @@ exports.handler = async (event, _context) => {
       const ai = new GoogleGenerativeAI(geminiApiKey);
       const model = ai.getGenerativeModel({
         model: 'gemini-1.5-flash',
-        generationConfig: { responseMimeType: "application/json" }
+        generationConfig: { responseMimeType: 'application/json' }
       });
 
       const prompt = `
@@ -119,7 +135,7 @@ exports.handler = async (event, _context) => {
 
       const aiResponse = await model.generateContent(prompt);
       const aiText = aiResponse.response.text();
-      structuredResult = JSON.parse(aiText);
+      structuredResult = JSON.parse(aiText) as Responses;
     } catch (geminiError) {
       console.error('Gemini API call failed, falling back to raw response text:', geminiError);
     }
@@ -169,13 +185,13 @@ exports.handler = async (event, _context) => {
       })
     };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in Netlify function process-response:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({
         error: 'Internal Server Error.',
-        details: error.message
+        details: error?.message || 'Unknown error'
       })
     };
   }
