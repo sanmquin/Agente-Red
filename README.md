@@ -1,74 +1,82 @@
-# Agente Red - Voice Assistant for Google Docs (es-MX)
+# Agente Verde - Voice Assistant for Google Docs (es-MX)
 
-**Agente Red** es un agente de voz interactivo desarrollado en **React** que captura las respuestas de voz de un usuario de forma nativa en su navegador (usando Google Chrome native transcription API) y las escribe de forma estructurada en un documento de **Google Docs** usando **Gemini-flash-lite 3.1** (a través de Netlify serverless functions).
+**Agente Verde** is an interactive voice agent developed in **React** that captures user voice responses natively in the browser (using the native Google Chrome Speech Recognition transcription API) and writes them in a structured format directly to a **Google Doc** after refining the input with **Gemini-1.5-flash** (processed securely via Netlify serverless functions).
 
----
-
-## 🚀 Características principales
-- **Asistente de Voz Nativo:** Utiliza las APIs nativas del navegador Google Chrome para reproducción (Speech Synthesis - TTS) y transcripción (Speech Recognition - STT) configuradas en español de México (`es-MX`).
-- **Guión Estructurado JSON:** El asistente sigue de forma exacta la secuencia y configuración descrita en `public/script.json`.
-- **Estructuración con Gemini:** Procesa los textos crudos con el modelo Gemini de Google AI Studio para estructurar respuestas ejecutivas perfectas en formato JSON antes de grabarlas.
-- **Ediciones Controladas (Google Docs):** Actualiza el documento de manera determinista utilizando la API oficial de Google Docs de forma segura desde el backend.
-- **Modo Offline / Simulador:** Permite realizar pruebas completas y simular inserciones sin requerir credenciales activas o llaves API, ideal para demostración ágil.
+This tool is specifically designed to support non-profit organizations with a helpful, friendly persona and calming emerald green colors.
 
 ---
 
-## 📋 Script Piloto de Preguntas (Español - México)
-El agente te formulará de manera interactiva las siguientes tres preguntas del piloto:
-1. **¿Qué proyectos estás gestionando actualmente?**
-2. **¿Cuáles son las principales fuentes de ingresos?**
-3. **¿Qué ideas de crecimiento tienes?**
+## 🚀 Key Features
+- **Calming & Peaceful Design:** Styled using a soothing Emerald Green theme representing development and supportive action (completely avoiding colors associated with warning/violence).
+- **Friendly & Supportive Voice Selection:** Integrated with warm, higher-pitched, pleasant native Spanish voices, avoiding deep, robotic, or harsh synthesizers.
+- **Secure Architecture:** Built under standard modular React components. Local files (`.env`, `.env.local`, `.env.*`) are ignored to protect API credentials.
+- **Setup Verification & No Lost Work:** Users are guided step-by-step to set up their Google Doc first. Access and edit permissions are validated before starting the voice agent, ensuring you never lose your speech responses.
+- **Real-time API Monitor:** View the exact payload structured on the client-side for server submission.
 
 ---
 
-## 🛠️ Configuración del Documento de Google
+## 📋 Interactive Pilot Script (Mexican Spanish - es-MX)
+The friendly voice agent will guide you through these three pilot questions:
+1. **¿Qué proyectos estás gestionando actualmente?** (What projects are you currently managing?)
+2. **¿Cuáles son las principales fuentes de ingresos?** (What are the primary income sources?)
+3. **¿Qué ideas de crecimiento tienes?** (What are your growth ideas?)
 
-Para enlazar este agente con un documento real de Google Docs, sigue estos pasos:
+---
 
-1. **Crear el Google Doc:**
-   Crea un nuevo documento de Google Docs en [docs.new](https://docs.new).
+## 🛠️ Google Doc Configuration
 
-2. **Obtener el Google Doc ID:**
-   Copia el ID largo del documento desde la barra de direcciones de tu navegador. El ID se encuentra entre `/d/` y `/edit`. Ejemplo:
-   `https://docs.google.com/document/d/1uB6pZ8Qo7H_MOCK_DOCUMENT_ID/edit` -> El ID es `1uB6pZ8Qo7H_MOCK_DOCUMENT_ID`.
+To link this agent to your Google Doc:
 
-3. **Compartir el Documento con la Cuenta de Servicio:**
-   Haz clic en **Compartir** y otorga permisos de **Editor** al correo de la Cuenta de Servicio de Google (Service Account) configurada para el backend:
+1. **Create a Google Doc:**
+   Create a new blank document on [docs.new](https://docs.new).
+
+2. **Retrieve the Document ID:**
+   Copy the long alphanumeric ID from your browser's address bar. It resides between `/d/` and `/edit`.
+   *Example:* `https://docs.google.com/document/d/1uB6pZ8Qo7H_MOCK_DOCUMENT_ID/edit` -> The ID is `1uB6pZ8Qo7H_MOCK_DOCUMENT_ID`.
+
+3. **Share Access with Service Account:**
+   Click **Share** in Google Docs and grant **Editor** privileges to the application's service account email:
    `agente-red-service@agente-red-42.iam.gserviceaccount.com`
 
----
-
-## ⚙️ Variables de Entorno (Netlify)
-
-Para conectar el backend real en producción o de forma local, debes configurar las siguientes variables de entorno en tu panel de **Netlify** o archivo `.env`:
-
-| Variable | Descripción | Requerido |
-| :--- | :--- | :--- |
-| `GEMINI_API_KEY` | API Key provista por Google AI Studio para el modelo Gemini-flash. | Sí (Real) |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Correo electrónico de la Cuenta de Servicio de Google Cloud Console. | Sí (Real) |
-| `GOOGLE_PRIVATE_KEY` | Clave privada (Private Key) del Service Account en formato JSON (`-----BEGIN PRIVATE KEY-----\n...`). | Sí (Real) |
+4. **Verify connection:**
+   Type or paste the ID into the **Google Doc Integration** panel on the UI and click **Validate and Open Document**. This checks real-time write capability by adding a validation tag to the document. The interview flow will unlock immediately upon success.
 
 ---
 
-## 💻 Desarrollo Local
+## ⚙️ Environment Configuration
 
-Para correr este proyecto localmente, asegúrate de tener instalado Node.js y ejecuta los siguientes comandos:
+To run real-world operations in production (Netlify) or local development, you must configure server environment keys.
+
+### Secure Configuration Method
+**Warning: Never hardcode or commit JSON files or environment secrets containing keys.**
+
+Instead, use standard environment variables. You can configure them in your **Netlify dashboard** under **Site settings > Environment variables**, or locally by creating a `.env.local` file at the root of your project (which is automatically ignored by `.gitignore`):
+
+| Variable | Description |
+| :--- | :--- |
+| `GEMINI_API_KEY` | Your Google AI Studio API key for Gemini. |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | The service account client email. |
+| `GOOGLE_PRIVATE_KEY` | The private key from your service account JSON file. Replace escaped line breaks (`\n` strings) with actual line breaks or leave as-is depending on your system's environment variable parsing. |
+
+---
+
+## 💻 Local Development
+
+Ensure you have Node.js installed, then execute:
 
 ```bash
-# 1. Instalar dependencias
+# 1. Install dependencies
 npm install
 
-# 2. Correr el servidor de desarrollo local
+# 2. Run local development server
 npm run dev
 
-# 3. Compilar para producción
+# 3. Build for production
 npm run build
 ```
 
 ---
 
-## 📝 Lista de Pendientes (TODOs) para Producción
-
-- [ ] Reemplazar las credenciales de prueba por cuentas de servicio de Google Cloud Console de producción.
-- [ ] Configurar un sistema de control de autenticación de usuarios para impedir que usuarios no autorizados escriban en documentos ajenos.
-- [ ] Incorporar comandos de voz globales como *"Siguiente"*, *"Repetir"* o *"Guardar"* en la API de Speech Recognition para una navegación 100% libre de manos.
+## 📝 Future Production Tasks (TODOs)
+- Integrate global voice commands like *"Siguiente"*, *"Repetir"*, or *"Guardar"* directly into the Speech Recognition API.
+- Support user access lists/scopes to authenticate individual Google Service accounts on the client.

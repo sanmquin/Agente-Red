@@ -1,8 +1,8 @@
 const { google } = require('googleapis');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-exports.handler = async (event, context) => {
-  // Only allow POST
+exports.handler = async (event, _context) => {
+  // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -12,101 +12,27 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const { documentId, responses, mock } = body;
+    const { documentId, responses, action } = body;
 
-    if (!responses) {
+    if (!documentId) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Faltan las respuestas del agente en la solicitud.' })
+        body: JSON.stringify({ error: 'Document ID is required.' })
       };
     }
 
-    // 1. If mock is enabled or keys are missing, simulate success with simulated payload structure
     const geminiApiKey = process.env.GEMINI_API_KEY;
     const googleServiceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const googlePrivateKey = process.env.GOOGLE_PRIVATE_KEY;
 
-    if (mock || !geminiApiKey || !googleServiceAccountEmail || !googlePrivateKey) {
-      console.log('Utilizando modo de simulación (MOCK/SIMULATED) para responder al cliente...');
-
-      // Simulate deterministic JSON output that structured processing would output
-      const mockStructuredData = {
-        projects: {
-          original: responses.projects || '',
-          cleaned_es: `[SIMULADO] ${responses.projects || 'Sin proyectos registrados'}`,
-          action_taken: "Inserto en sección Proyectos"
-        },
-        income: {
-          original: responses.income || '',
-          cleaned_es: `[SIMULADO] ${responses.income || 'Sin ingresos registrados'}`,
-          action_taken: "Inserto en sección Ingresos"
-        },
-        growth: {
-          original: responses.growth || '',
-          cleaned_es: `[SIMULADO] ${responses.growth || 'Sin ideas de crecimiento registradas'}`,
-          action_taken: "Inserto en sección Crecimiento"
-        }
-      };
-
-      // We simulate success and return payload
+    if (!googleServiceAccountEmail || !googlePrivateKey) {
       return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          success: true,
-          message: 'Simulación completada con éxito. Google Doc no modificado realmente.',
-          structuredData: mockStructuredData,
-          mock: true,
-          warning: (!geminiApiKey || !googleServiceAccountEmail || !googlePrivateKey)
-            ? 'Se usó el modo simulación por falta de variables de entorno reales en Netlify.'
-            : undefined
-        })
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Missing Google credentials on the server. Please check your environment variables.' })
       };
     }
 
-    // 2. Real Integration with Gemini-flash-lite 3.1 & Google Docs API
-    // 2a. Call Gemini to format and clean user input in JSON
-    let structuredResult = {
-      projects: responses.projects,
-      income: responses.income,
-      growth: responses.growth
-    };
-
-    try {
-      const ai = new GoogleGenerativeAI(geminiApiKey);
-      // We target gemini-2.5-flash as the latest standard name, fallback to gemini-1.5-flash
-      const model = ai.getGenerativeModel({
-        model: 'gemini-1.5-flash',
-        generationConfig: { responseMimeType: "application/json" }
-      });
-
-      const prompt = `
-        Eres "Agente Red". Tu tarea es procesar las transcripciones de voz de un usuario en español de México (es-MX) y convertirlas en respuestas de texto redactadas de manera clara, profesional, coherente y organizada.
-        Debes responder estrictamente en formato JSON con la siguiente estructura:
-        {
-          "projects": "La respuesta pulida de proyectos gestionados",
-          "income": "La respuesta pulida sobre las fuentes de ingresos principales",
-          "growth": "La respuesta pulida sobre ideas de crecimiento"
-        }
-
-        Las respuestas de voz crudas son las siguientes:
-        - Proyectos gestionados: "${responses.projects || 'Sin respuesta'}"
-        - Fuentes de ingreso: "${responses.income || 'Sin respuesta'}"
-        - Ideas de crecimiento: "${responses.growth || 'Sin respuesta'}"
-
-        Asegúrate de limpiar tartamudeos, corregir gramática, enriquecer ligeramente la redacción para que luzca muy formal y profesional para un reporte ejecutivo, pero sin inventar información no provista.
-      `;
-
-      const aiResponse = await model.generateContent(prompt);
-      const aiText = aiResponse.response.text();
-      structuredResult = JSON.parse(aiText);
-    } catch (geminiError) {
-      console.error('Error al invocar Gemini API, usando texto original sin pulir:', geminiError);
-      // Fallback to original responses if LLM fails
-    }
-
-    // 2b. Write to Google Docs using Google Service Account
-    // We authorize using the google service account
+    // Authenticate with Google
     const auth = new google.auth.JWT(
       googleServiceAccountEmail,
       null,
@@ -116,12 +42,94 @@ exports.handler = async (event, context) => {
 
     const docs = google.docs({ version: 'v1', auth });
 
-    // Let's perform deterministic updates on Google Docs: Append structured titles and responses to the document
+    // Handle "validate" action
+    if (action === 'validate') {
+      const validateRequests = [
+        {
+          insertText: {
+            endOfSegmentLocation: {},
+            text: `\n\n=== CONEXIÓN VALIDADA CON AGENTE VERDE ===\nFecha y Hora: ${new Date().toLocaleString('es-MX')}\n\n`
+          }
+        }
+      ];
+
+      await docs.documents.batchUpdate({
+        documentId: documentId,
+        requestBody: {
+          requests: validateRequests
+        }
+      });
+
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          success: true,
+          message: 'Document write validation completed successfully.'
+        })
+      };
+    }
+
+    // Handle normal response processing
+    if (!responses) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing agent responses in the request.' })
+      };
+    }
+
+    if (!geminiApiKey) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Missing GEMINI_API_KEY environment variable.' })
+      };
+    }
+
+    // Process responses using Gemini AI model (gemini-1.5-flash)
+    let structuredResult = {
+      projects: responses.projects,
+      income: responses.income,
+      growth: responses.growth
+    };
+
+    try {
+      const ai = new GoogleGenerativeAI(geminiApiKey);
+      const model = ai.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+        generationConfig: { responseMimeType: "application/json" }
+      });
+
+      const prompt = `
+        You are "Agente Verde", a helpful and supportive voice agent assisting non-profit organizers.
+        Your task is to process raw voice transcription inputs in Mexican Spanish (es-MX) and format them into professional, clear, and executive-level responses.
+        You must return a strict JSON response with the following keys and no extra formatting:
+        {
+          "projects": "Formatted and polished projects response",
+          "income": "Formatted and polished income sources response",
+          "growth": "Formatted and polished growth ideas response"
+        }
+
+        Here are the raw voice transcription responses:
+        - Current Projects: "${responses.projects || 'No response'}"
+        - Income Sources: "${responses.income || 'No response'}"
+        - Growth Ideas: "${responses.growth || 'No response'}"
+
+        Please clean up stutters, fix grammar, and enhance the phrasing to sound clean, formal, and structured, whilst retaining the original Spanish language. Do not invent any facts or details that were not provided.
+      `;
+
+      const aiResponse = await model.generateContent(prompt);
+      const aiText = aiResponse.response.text();
+      structuredResult = JSON.parse(aiText);
+    } catch (geminiError) {
+      console.error('Gemini API call failed, falling back to raw response text:', geminiError);
+    }
+
+    // Append structured text to the Google Doc
     const requests = [
       {
         insertText: {
           endOfSegmentLocation: {},
-          text: `\n\n=== REPORTE GENERADO POR AGENTE RED ===\nFecha: ${new Date().toLocaleDateString('es-MX')}\n\n`
+          text: `\n\n=== REPORTE GENERADO POR AGENTE VERDE ===\nFecha: ${new Date().toLocaleDateString('es-MX')}\n\n`
         }
       },
       {
@@ -156,18 +164,17 @@ exports.handler = async (event, context) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         success: true,
-        message: 'Google Doc actualizado correctamente de forma estructurada.',
-        structuredData: structuredResult,
-        mock: false
+        message: 'Google Doc updated successfully with structured responses.',
+        structuredData: structuredResult
       })
     };
 
   } catch (error) {
-    console.error('Error en netlify function process-response:', error);
+    console.error('Error in Netlify function process-response:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({
-        error: 'Error interno de servidor backend.',
+        error: 'Internal Server Error.',
         details: error.message
       })
     };
