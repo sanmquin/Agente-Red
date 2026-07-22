@@ -111,7 +111,7 @@ export const handler = async (
     try {
       const ai = new GoogleGenerativeAI(geminiApiKey);
       const model = ai.getGenerativeModel({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-3.1-flash-lite',
         generationConfig: { responseMimeType: 'application/json' }
       });
 
