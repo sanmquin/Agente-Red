@@ -1,6 +1,6 @@
-# Agente Verde - Voice Assistant Developer Guidelines
+# Agente Red Altruista - Voice Assistant Developer Guidelines
 
-Welcome to the development scope of Agente Verde. To ensure the codebase remains clean, secure, and easily maintainable, all contributions must respect the guidelines outlined below.
+Welcome to the development scope of Agente Red Altruista. To ensure the codebase remains clean, secure, and easily maintainable, all contributions must respect the guidelines outlined below.
 
 ## 1. Modular Coding Principles
 - Do not build large monolithic React structures (e.g. keeping everything inside a single `App.jsx`).

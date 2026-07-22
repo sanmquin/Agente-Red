@@ -1,6 +1,6 @@
-# Agente Verde - Voice Assistant for Google Docs (es-MX)
+# Agente Red Altruista - Voice Assistant for Google Docs (es-MX)
 
-**Agente Verde** is an interactive voice agent developed in **React** that captures user voice responses natively in the browser (using the native Google Chrome Speech Recognition transcription API) and writes them in a structured format directly to a **Google Doc** after refining the input with **Gemini-1.5-flash** (processed securely via Netlify serverless functions).
+**Agente Red Altruista** is an interactive voice agent developed in **React** that captures user voice responses natively in the browser (using the native Google Chrome Speech Recognition transcription API) and writes them in a structured format directly to a **Google Doc** after refining the input with **Gemini-1.5-flash** (processed securely via Netlify serverless functions).
 
 This tool is specifically designed to support non-profit organizations with a helpful, friendly persona and calming emerald green colors.
 

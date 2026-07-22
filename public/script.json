@@ -1,8 +1,8 @@
 {
-  "agentName": "Agente Verde",
+  "agentName": "Agente Red Altruista",
   "languageCode": "es-MX",
   "description": "Script de entrevista piloto para captura de información de proyectos, ingresos e ideas de crecimiento para el documento de Google.",
-  "welcomeMessage": "Hola, soy el Agente Verde, tu asistente de voz. Te haré tres preguntas para completar tu documento de Google Docs. ¿Comenzamos?",
+  "welcomeMessage": "Hola, soy el Agente Red Altruista, tu asistente de voz. Te haré tres preguntas para completar tu documento de Google Docs. ¿Comenzamos?",
   "questions": [
     {
       "id": "projects_managed",

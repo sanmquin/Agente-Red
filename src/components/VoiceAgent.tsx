@@ -31,6 +31,14 @@ export default function VoiceAgent({
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(typeof window !== 'undefined' ? window.speechSynthesis : null);
 
+  const isListeningRef = useRef(isListening);
+  const accumulatedTranscriptRef = useRef(editedResponse);
+  const baseTranscriptRef = useRef(editedResponse);
+
+  useEffect(() => {
+    isListeningRef.current = isListening;
+  }, [isListening]);
+
   // STT Speech Recognition Initialization
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -41,44 +49,74 @@ export default function VoiceAgent({
       rec.lang = 'es-MX';
 
       rec.onresult = (event: any) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
+        const finalSegments: string[] = [];
+        const interimSegments: string[] = [];
 
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        for (let i = 0; i < event.results.length; ++i) {
+          const text = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+            if (text.trim()) {
+              finalSegments.push(text.trim());
+            }
           } else {
-            interimTranscript += event.results[i][0].transcript;
+            if (text.trim()) {
+              interimSegments.push(text.trim());
+            }
           }
         }
 
-        const currentText = finalTranscript || interimTranscript;
-        if (currentText.trim()) {
-          setEditedResponse(currentText);
+        const finalTranscript = finalSegments.join(' ');
+        const interimTranscript = interimSegments.join(' ');
+
+        let currentSpeech = '';
+        if (finalTranscript && interimTranscript) {
+          currentSpeech = finalTranscript + ' ' + interimTranscript;
+        } else {
+          currentSpeech = finalTranscript || interimTranscript;
+        }
+
+        if (currentSpeech.trim()) {
+          const base = baseTranscriptRef.current ? baseTranscriptRef.current.trim() : '';
+          const newText = base ? base + ' ' + currentSpeech.trim() : currentSpeech.trim();
+          accumulatedTranscriptRef.current = newText;
+          setEditedResponse(newText);
         }
       };
 
       rec.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        if (event.error !== 'no-speech') {
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
           setErrorMessage(`Error de transcripción: ${event.error}`);
-          setIsListening(false);
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            setIsListening(false);
+          }
         }
       };
 
       rec.onend = () => {
-        if (isListening) {
+        if (isListeningRef.current) {
+          baseTranscriptRef.current = accumulatedTranscriptRef.current;
           try {
             rec.start();
           } catch (e) {
-            console.error(e);
+            console.error('Failed restarting speech recognition:', e);
           }
         }
       };
 
       recognitionRef.current = rec;
     }
-  }, [isListening]);
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+  }, []);
 
   // Read Text Out Loud
   const speakText = (text: string, callback?: () => void) => {
@@ -92,9 +130,12 @@ export default function VoiceAgent({
 
     const voices = synthRef.current.getVoices();
 
-    // Use selectedVoiceName if configured, otherwise look for standard female voice
+    // Use selectedVoiceName if configured, otherwise look for Paulina, then other standard female voices
     let selectedVoice = voices.find(v => v.name === selectedVoiceName);
 
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.name.toLowerCase().includes('paulina'));
+    }
     if (!selectedVoice) {
       selectedVoice = voices.find(v => v.lang.includes('es-MX') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('sabin') || v.name.toLowerCase().includes('microsoft sabina') || v.name.toLowerCase().includes('google')));
     }
@@ -144,17 +185,23 @@ export default function VoiceAgent({
     setCurrentStep(`question_${index}`);
 
     const currentKey = q.key;
-    setEditedResponse(responses[currentKey] || '');
+    const initialText = responses[currentKey] || '';
+    setEditedResponse(initialText);
+    baseTranscriptRef.current = initialText;
+    accumulatedTranscriptRef.current = initialText;
 
     speakText(q.ttsPrompt, () => {
-      startListening();
+      startListening(initialText);
     });
   };
 
-  const startListening = () => {
+  const startListening = (initialVal?: string) => {
     stopSpeaking();
     if (recognitionRef.current) {
       setErrorMessage('');
+      const targetVal = typeof initialVal === 'string' ? initialVal : editedResponse;
+      baseTranscriptRef.current = targetVal;
+      accumulatedTranscriptRef.current = targetVal;
       try {
         recognitionRef.current.start();
         setIsListening(true);
@@ -275,6 +322,8 @@ export default function VoiceAgent({
     stopSpeaking();
     setResponses({ projects: '', income: '', growth: '' });
     setEditedResponse('');
+    accumulatedTranscriptRef.current = '';
+    baseTranscriptRef.current = '';
     setBackendStatus(null);
     setErrorMessage('');
     setCurrentStep('welcome');
@@ -305,7 +354,7 @@ export default function VoiceAgent({
             <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
               <Volume2 className="w-10 h-10 animate-bounce" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-3">¡Bienvenido a Agente Verde!</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-3">¡Bienvenido a Agente Red Altruista!</h2>
             <p className="text-slate-600 max-w-md mx-auto mb-8">
               Este agente te guiará con una voz amigable para responder tres preguntas de tu proyecto, procesándolas con IA e insertándolas directamente en tu documento de Google.
             </p>
@@ -344,7 +393,14 @@ export default function VoiceAgent({
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 relative min-h-[140px] flex flex-col justify-between">
                 <textarea
                   value={editedResponse}
-                  onChange={(e) => setEditedResponse(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setEditedResponse(val);
+                    accumulatedTranscriptRef.current = val;
+                    if (!isListening) {
+                      baseTranscriptRef.current = val;
+                    }
+                  }}
                   placeholder={q.placeholder}
                   className="w-full bg-transparent border-0 resize-none focus:outline-none focus:ring-0 text-slate-700 text-base"
                   rows={4}
@@ -377,7 +433,11 @@ export default function VoiceAgent({
                   )}
 
                   <button
-                    onClick={() => setEditedResponse('')}
+                    onClick={() => {
+                      setEditedResponse('');
+                      accumulatedTranscriptRef.current = '';
+                      baseTranscriptRef.current = '';
+                    }}
                     className="border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold py-2 px-3 rounded-lg flex items-center gap-2 text-sm cursor-pointer"
                   >
                     <RefreshCw className="w-4 h-4" /> Limpiar
@@ -405,7 +465,7 @@ export default function VoiceAgent({
             <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Procesando respuestas</h3>
             <p className="text-slate-600">
-              El Agente Verde está estructurando tus respuestas e ingresándolas de forma segura en Google Docs...
+              El Agente Red Altruista está estructurando tus respuestas e ingresándolas de forma segura en Google Docs...
             </p>
           </div>
         )}
