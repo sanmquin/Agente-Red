@@ -122,7 +122,7 @@ export const handler = async (
           text: `\n\n=========================================\n CONEXIÓN VALIDADA CON AGENTE VERDE\n=========================================\n`,
           style: {
             bold: true,
-            fontSize: { size: 12, unit: 'PT' },
+            fontSize: { magnitude: 12, unit: 'PT' },
             foregroundColor: {
               color: { rgbColor: { red: 5/255, green: 150/255, blue: 105/255 } }
             }
@@ -132,7 +132,7 @@ export const handler = async (
           text: `Fecha y Hora: ${new Date().toLocaleString('es-MX')}\n`,
           style: {
             italic: true,
-            fontSize: { size: 10, unit: 'PT' },
+            fontSize: { magnitude: 10, unit: 'PT' },
             foregroundColor: {
               color: { rgbColor: { red: 100/255, green: 116/255, blue: 139/255 } }
             }
@@ -141,7 +141,7 @@ export const handler = async (
         {
           text: `La conexión con el documento ha sido establecida correctamente y el Agente Verde está listo para capturar respuestas con estilo y profesionalismo.\n-----------------------------------------\n\n`,
           style: {
-            fontSize: { size: 10, unit: 'PT' },
+            fontSize: { magnitude: 10, unit: 'PT' },
             foregroundColor: {
               color: { rgbColor: { red: 30/255, green: 41/255, blue: 59/255 } }
             }
@@ -219,7 +219,7 @@ export const handler = async (
           text: `\n\n[ACTUALIZACIÓN EN TIEMPO REAL: ${new Date().toLocaleTimeString('es-MX')}]\n`,
           style: {
             italic: true,
-            fontSize: { size: 9, unit: 'PT' },
+            fontSize: { magnitude: 9, unit: 'PT' },
             foregroundColor: {
               color: { rgbColor: { red: 100/255, green: 116/255, blue: 139/255 } }
             }
@@ -229,7 +229,7 @@ export const handler = async (
           text: `${questionTitle.toUpperCase()}\n`,
           style: {
             bold: true,
-            fontSize: { size: 12, unit: 'PT' },
+            fontSize: { magnitude: 12, unit: 'PT' },
             foregroundColor: {
               color: { rgbColor: { red: 5/255, green: 150/255, blue: 105/255 } }
             }
@@ -238,7 +238,7 @@ export const handler = async (
         {
           text: `${polishedResponse}\n\n`,
           style: {
-            fontSize: { size: 11, unit: 'PT' },
+            fontSize: { magnitude: 11, unit: 'PT' },
             foregroundColor: {
               color: { rgbColor: { red: 30/255, green: 41/255, blue: 59/255 } }
             }
@@ -336,7 +336,7 @@ export const handler = async (
         text: `\n\n=========================================\n REPORTE DE ENTREVISTA: AGENTE VERDE\n=========================================\n`,
         style: {
           bold: true,
-          fontSize: { size: 14, unit: 'PT' },
+          fontSize: { magnitude: 14, unit: 'PT' },
           foregroundColor: {
             color: { rgbColor: { red: 5/255, green: 150/255, blue: 105/255 } }
           }
@@ -346,7 +346,7 @@ export const handler = async (
         text: `Fecha y hora: ${new Date().toLocaleString('es-MX')}\n\n`,
         style: {
           italic: true,
-          fontSize: { size: 10, unit: 'PT' },
+          fontSize: { magnitude: 10, unit: 'PT' },
           foregroundColor: {
             color: { rgbColor: { red: 100/255, green: 116/255, blue: 139/255 } }
           }
@@ -356,7 +356,7 @@ export const handler = async (
         text: `1. PROYECTOS ACTUALES:\n`,
         style: {
           bold: true,
-          fontSize: { size: 12, unit: 'PT' },
+          fontSize: { magnitude: 12, unit: 'PT' },
           foregroundColor: {
             color: { rgbColor: { red: 5/255, green: 150/255, blue: 105/255 } }
           }
@@ -365,7 +365,7 @@ export const handler = async (
       {
         text: `${structuredResult.projects || 'No especificado'}\n\n`,
         style: {
-          fontSize: { size: 11, unit: 'PT' },
+          fontSize: { magnitude: 11, unit: 'PT' },
           foregroundColor: {
             color: { rgbColor: { red: 30/255, green: 41/255, blue: 59/255 } }
           }
@@ -375,7 +375,7 @@ export const handler = async (
         text: `2. FUENTES DE INGRESOS:\n`,
         style: {
           bold: true,
-          fontSize: { size: 12, unit: 'PT' },
+          fontSize: { magnitude: 12, unit: 'PT' },
           foregroundColor: {
             color: { rgbColor: { red: 5/255, green: 150/255, blue: 105/255 } }
           }
@@ -384,7 +384,7 @@ export const handler = async (
       {
         text: `${structuredResult.income || 'No especificado'}\n\n`,
         style: {
-          fontSize: { size: 11, unit: 'PT' },
+          fontSize: { magnitude: 11, unit: 'PT' },
           foregroundColor: {
             color: { rgbColor: { red: 30/255, green: 41/255, blue: 59/255 } }
           }
@@ -394,7 +394,7 @@ export const handler = async (
         text: `3. IDEAS DE CRECIMIENTO:\n`,
         style: {
           bold: true,
-          fontSize: { size: 12, unit: 'PT' },
+          fontSize: { magnitude: 12, unit: 'PT' },
           foregroundColor: {
             color: { rgbColor: { red: 5/255, green: 150/255, blue: 105/255 } }
           }
@@ -403,7 +403,7 @@ export const handler = async (
       {
         text: `${structuredResult.growth || 'No especificado'}\n\n`,
         style: {
-          fontSize: { size: 11, unit: 'PT' },
+          fontSize: { magnitude: 11, unit: 'PT' },
           foregroundColor: {
             color: { rgbColor: { red: 30/255, green: 41/255, blue: 59/255 } }
           }
