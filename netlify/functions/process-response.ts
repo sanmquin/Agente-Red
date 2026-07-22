@@ -289,7 +289,7 @@ export const handler = async (
       };
     }
 
-    // Process responses using Gemini AI model (gemini-1.5-flash)
+    // Process responses using Gemini AI model (gemini-3.1-flash-lite)
     let structuredResult: Responses = {
       projects: responses.projects,
       income: responses.income,
@@ -299,7 +299,7 @@ export const handler = async (
     try {
       const ai = new GoogleGenerativeAI(geminiApiKey);
       const model = ai.getGenerativeModel({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-3.1-flash-lite',
         generationConfig: { responseMimeType: 'application/json' }
       });
 
