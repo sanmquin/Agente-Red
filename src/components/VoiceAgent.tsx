@@ -49,22 +49,35 @@ export default function VoiceAgent({
       rec.lang = 'es-MX';
 
       rec.onresult = (event: any) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
+        const finalSegments: string[] = [];
+        const interimSegments: string[] = [];
 
         for (let i = 0; i < event.results.length; ++i) {
+          const text = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+            if (text.trim()) {
+              finalSegments.push(text.trim());
+            }
           } else {
-            interimTranscript += event.results[i][0].transcript;
+            if (text.trim()) {
+              interimSegments.push(text.trim());
+            }
           }
         }
 
-        const currentSpeech = finalTranscript + interimTranscript;
+        const finalTranscript = finalSegments.join(' ');
+        const interimTranscript = interimSegments.join(' ');
+
+        let currentSpeech = '';
+        if (finalTranscript && interimTranscript) {
+          currentSpeech = finalTranscript + ' ' + interimTranscript;
+        } else {
+          currentSpeech = finalTranscript || interimTranscript;
+        }
+
         if (currentSpeech.trim()) {
-          const base = baseTranscriptRef.current;
-          const separator = base && !base.endsWith(' ') && !currentSpeech.startsWith(' ') ? ' ' : '';
-          const newText = base + separator + currentSpeech;
+          const base = baseTranscriptRef.current ? baseTranscriptRef.current.trim() : '';
+          const newText = base ? base + ' ' + currentSpeech.trim() : currentSpeech.trim();
           accumulatedTranscriptRef.current = newText;
           setEditedResponse(newText);
         }
@@ -178,16 +191,17 @@ export default function VoiceAgent({
     accumulatedTranscriptRef.current = initialText;
 
     speakText(q.ttsPrompt, () => {
-      startListening();
+      startListening(initialText);
     });
   };
 
-  const startListening = () => {
+  const startListening = (initialVal?: string) => {
     stopSpeaking();
     if (recognitionRef.current) {
       setErrorMessage('');
-      baseTranscriptRef.current = editedResponse;
-      accumulatedTranscriptRef.current = editedResponse;
+      const targetVal = typeof initialVal === 'string' ? initialVal : editedResponse;
+      baseTranscriptRef.current = targetVal;
+      accumulatedTranscriptRef.current = targetVal;
       try {
         recognitionRef.current.start();
         setIsListening(true);

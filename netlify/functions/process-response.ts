@@ -191,6 +191,17 @@ export const handler = async (
           const prompt = `
             You are "Agente Red Altruista", a helpful and supportive voice assistant.
             Your task is to refine a raw Spanish voice transcription response and make it structured, professional, and clear.
+
+            Source of errors:
+            The raw transcription is captured using native browser Speech-to-Text APIs, which restart dynamically when the user pauses to think or elaborate. This results in missing punctuation, lack of proper spacing/capitalization, repetitive word stutters (e.g. "yo yo..."), background mic noise artifacts, or phonetic misinterpretations.
+
+            Instructions:
+            - Correct all punctuation, missing commas, periods, and capitalization.
+            - Clean up stutters, repetitions, and vocal fillers (e.g., "este", "eh", "bueno").
+            - Fix phonetic transcription typos or misheard words, ensuring the text is coherent and grammatically pristine.
+            - Maintain the user's original ideas and facts exactly; do not invent or extrapolate details.
+            - Output the polished, cohesive text in professional Mexican Spanish.
+
             Return a JSON response matching this schema:
             {
               "polishedResponse": "The polished response paragraph in Spanish"
@@ -306,6 +317,17 @@ export const handler = async (
       const prompt = `
         You are "Agente Red Altruista", a helpful and supportive voice agent assisting non-profit organizers.
         Your task is to process raw voice transcription inputs in Mexican Spanish (es-MX) and format them into professional, clear, and executive-level responses.
+
+        Source of errors:
+        The raw transcription is captured using native browser Speech-to-Text APIs, which restart dynamically when the user pauses to think or elaborate. This results in missing punctuation, lack of proper spacing/capitalization, repetitive word stutters (e.g. "yo yo..."), background mic noise artifacts, or phonetic misinterpretations.
+
+        Instructions:
+        - Correct all punctuation, missing commas, periods, and capitalization.
+        - Clean up stutters, repetitions, and vocal fillers (e.g., "este", "eh", "bueno").
+        - Fix phonetic transcription typos or misheard words, ensuring the text is coherent and grammatically pristine.
+        - Maintain the user's original ideas and facts exactly; do not invent or extrapolate details.
+        - Output the polished, cohesive text in professional Mexican Spanish.
+
         You must return a strict JSON response with the following keys and no extra formatting:
         {
           "projects": "Formatted and polished projects response",
@@ -317,8 +339,6 @@ export const handler = async (
         - Current Projects: "${responses.projects || 'No response'}"
         - Income Sources: "${responses.income || 'No response'}"
         - Growth Ideas: "${responses.growth || 'No response'}"
-
-        Please clean up stutters, fix grammar, and enhance the phrasing to sound clean, formal, and structured, whilst retaining the original Spanish language. Do not invent any facts or details that were not provided.
       `;
 
       const aiResponse = await model.generateContent(prompt);
