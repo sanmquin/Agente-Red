@@ -13,7 +13,7 @@ export default function Header({ onOpenSettings }: HeaderProps) {
             <Leaf className="w-8 h-8 text-emerald-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight m-0 text-white leading-none">Agente Verde</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight m-0 text-white leading-none">Agente Red Altruista</h1>
             <p className="text-emerald-100 text-sm mt-1">Tu asistente de voz amigable para documentar en Google Docs</p>
           </div>
         </div>

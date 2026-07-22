@@ -131,7 +131,7 @@ interface SettingsModalProps {
 }
 
 function SettingsModal({
-  isOpen,
+  isOpen: _isOpen,
   onClose,
   selectedVoiceName,
   setSelectedVoiceName,
@@ -155,8 +155,10 @@ function SettingsModal({
 
       // Set default female voice if not already selected
       if (!selectedVoiceName && spanishVoices.length > 0) {
-        // Try to find a standard female voice from es-MX first
+        // Try to find Paulina voice first, then other standard female voices from es-MX
         const defaultFemale = spanishVoices.find(v =>
+          v.name.toLowerCase().includes('paulina')
+        ) || spanishVoices.find(v =>
           v.lang.includes('es-MX') &&
           (v.name.toLowerCase().includes('female') ||
            v.name.toLowerCase().includes('sabin') ||
@@ -188,7 +190,7 @@ function SettingsModal({
     const synth = window.speechSynthesis;
     synth.cancel();
 
-    const utterance = new SpeechSynthesisUtterance('Hola, esta es una prueba de la voz del Agente Verde.');
+    const utterance = new SpeechSynthesisUtterance('Hola, esta es una prueba de la voz del Agente Red Altruista.');
     utterance.lang = 'es-MX';
 
     const selectedVoice = voices.find(v => v.name === selectedVoiceName);

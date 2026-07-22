@@ -119,7 +119,7 @@ export const handler = async (
 
       const sections = [
         {
-          text: `\n\n=========================================\n CONEXIÓN VALIDADA CON AGENTE VERDE\n=========================================\n`,
+          text: `\n\n=========================================\n CONEXIÓN VALIDADA CON AGENTE RED ALTRUISTA\n=========================================\n`,
           style: {
             bold: true,
             fontSize: { magnitude: 12, unit: 'PT' },
@@ -139,7 +139,7 @@ export const handler = async (
           }
         },
         {
-          text: `La conexión con el documento ha sido establecida correctamente y el Agente Verde está listo para capturar respuestas con estilo y profesionalismo.\n-----------------------------------------\n\n`,
+          text: `La conexión con el documento ha sido establecida correctamente y el Agente Red Altruista está listo para capturar respuestas con estilo y profesionalismo.\n-----------------------------------------\n\n`,
           style: {
             fontSize: { magnitude: 10, unit: 'PT' },
             foregroundColor: {
@@ -189,7 +189,7 @@ export const handler = async (
           });
 
           const prompt = `
-            You are "Agente Verde", a helpful and supportive voice assistant.
+            You are "Agente Red Altruista", a helpful and supportive voice assistant.
             Your task is to refine a raw Spanish voice transcription response and make it structured, professional, and clear.
             Return a JSON response matching this schema:
             {
@@ -304,7 +304,7 @@ export const handler = async (
       });
 
       const prompt = `
-        You are "Agente Verde", a helpful and supportive voice agent assisting non-profit organizers.
+        You are "Agente Red Altruista", a helpful and supportive voice agent assisting non-profit organizers.
         Your task is to process raw voice transcription inputs in Mexican Spanish (es-MX) and format them into professional, clear, and executive-level responses.
         You must return a strict JSON response with the following keys and no extra formatting:
         {
@@ -333,7 +333,7 @@ export const handler = async (
 
     const sections = [
       {
-        text: `\n\n=========================================\n REPORTE DE ENTREVISTA: AGENTE VERDE\n=========================================\n`,
+        text: `\n\n=========================================\n REPORTE DE ENTREVISTA: AGENTE RED ALTRUISTA\n=========================================\n`,
         style: {
           bold: true,
           fontSize: { magnitude: 14, unit: 'PT' },
