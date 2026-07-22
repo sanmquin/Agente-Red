@@ -32,19 +32,12 @@ export default function VoiceAgent({
   const synthRef = useRef<SpeechSynthesis | null>(typeof window !== 'undefined' ? window.speechSynthesis : null);
 
   const isListeningRef = useRef(isListening);
-  const editedResponseRef = useRef(editedResponse);
+  const accumulatedTranscriptRef = useRef(editedResponse);
   const baseTranscriptRef = useRef(editedResponse);
 
   useEffect(() => {
     isListeningRef.current = isListening;
   }, [isListening]);
-
-  useEffect(() => {
-    editedResponseRef.current = editedResponse;
-    if (!isListening) {
-      baseTranscriptRef.current = editedResponse;
-    }
-  }, [editedResponse, isListening]);
 
   // STT Speech Recognition Initialization
   useEffect(() => {
@@ -59,7 +52,7 @@ export default function VoiceAgent({
         let interimTranscript = '';
         let finalTranscript = '';
 
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        for (let i = 0; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
             finalTranscript += event.results[i][0].transcript;
           } else {
@@ -67,11 +60,13 @@ export default function VoiceAgent({
           }
         }
 
-        const currentSpeech = finalTranscript || interimTranscript;
+        const currentSpeech = finalTranscript + interimTranscript;
         if (currentSpeech.trim()) {
           const base = baseTranscriptRef.current;
           const separator = base && !base.endsWith(' ') && !currentSpeech.startsWith(' ') ? ' ' : '';
-          setEditedResponse(base + separator + currentSpeech);
+          const newText = base + separator + currentSpeech;
+          accumulatedTranscriptRef.current = newText;
+          setEditedResponse(newText);
         }
       };
 
@@ -87,7 +82,7 @@ export default function VoiceAgent({
 
       rec.onend = () => {
         if (isListeningRef.current) {
-          baseTranscriptRef.current = editedResponseRef.current;
+          baseTranscriptRef.current = accumulatedTranscriptRef.current;
           try {
             rec.start();
           } catch (e) {
@@ -177,7 +172,10 @@ export default function VoiceAgent({
     setCurrentStep(`question_${index}`);
 
     const currentKey = q.key;
-    setEditedResponse(responses[currentKey] || '');
+    const initialText = responses[currentKey] || '';
+    setEditedResponse(initialText);
+    baseTranscriptRef.current = initialText;
+    accumulatedTranscriptRef.current = initialText;
 
     speakText(q.ttsPrompt, () => {
       startListening();
@@ -189,6 +187,7 @@ export default function VoiceAgent({
     if (recognitionRef.current) {
       setErrorMessage('');
       baseTranscriptRef.current = editedResponse;
+      accumulatedTranscriptRef.current = editedResponse;
       try {
         recognitionRef.current.start();
         setIsListening(true);
@@ -309,6 +308,8 @@ export default function VoiceAgent({
     stopSpeaking();
     setResponses({ projects: '', income: '', growth: '' });
     setEditedResponse('');
+    accumulatedTranscriptRef.current = '';
+    baseTranscriptRef.current = '';
     setBackendStatus(null);
     setErrorMessage('');
     setCurrentStep('welcome');
@@ -378,7 +379,14 @@ export default function VoiceAgent({
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 relative min-h-[140px] flex flex-col justify-between">
                 <textarea
                   value={editedResponse}
-                  onChange={(e) => setEditedResponse(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setEditedResponse(val);
+                    accumulatedTranscriptRef.current = val;
+                    if (!isListening) {
+                      baseTranscriptRef.current = val;
+                    }
+                  }}
                   placeholder={q.placeholder}
                   className="w-full bg-transparent border-0 resize-none focus:outline-none focus:ring-0 text-slate-700 text-base"
                   rows={4}
@@ -411,7 +419,11 @@ export default function VoiceAgent({
                   )}
 
                   <button
-                    onClick={() => setEditedResponse('')}
+                    onClick={() => {
+                      setEditedResponse('');
+                      accumulatedTranscriptRef.current = '';
+                      baseTranscriptRef.current = '';
+                    }}
                     className="border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold py-2 px-3 rounded-lg flex items-center gap-2 text-sm cursor-pointer"
                   >
                     <RefreshCw className="w-4 h-4" /> Limpiar
