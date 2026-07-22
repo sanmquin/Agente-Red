@@ -1,0 +1,26 @@
+{
+  "agentName": "Agente Red",
+  "locale": "es-MX",
+  "greeting": "Hola, soy el Agente Red. Te ayudaré a rellenar el documento de planificación. Comencemos con unas preguntas.",
+  "goodbye": "¡Excelente! Hemos completado todas las preguntas. Ahora puedes actualizar el documento de Google.",
+  "questions": [
+    {
+      "id": "proyectos",
+      "placeholder": "{{PROYECTOS_ACTUALES}}",
+      "text": "¿Qué proyectos estás gestionando actualmente?",
+      "instruction": "Por favor, menciona los proyectos principales en los que estás trabajando."
+    },
+    {
+      "id": "ingresos",
+      "placeholder": "{{FUENTES_INGRESOS}}",
+      "text": "¿Cuáles son tus principales fuentes de ingresos?",
+      "instruction": "Describe los ingresos recurrentes, ventas, consultorías o cualquier otra fuente de entrada de dinero."
+    },
+    {
+      "id": "crecimiento",
+      "placeholder": "{{IDEAS_CRECIMIENTO}}",
+      "text": "¿Qué ideas de crecimiento tienes?",
+      "instruction": "Por favor, detalla tus planes futuros, ideas para expandirte o mejorar tus servicios."
+    }
+  ]
+}
