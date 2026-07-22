@@ -1,11 +1,19 @@
-import React from 'react';
 import { Database } from 'lucide-react';
 
-export default function JsonMonitor({ responses, docId }) {
+interface JsonMonitorProps {
+  responses: {
+    projects: string;
+    income: string;
+    growth: string;
+  };
+  docId: string;
+}
+
+export default function JsonMonitor({ responses, docId }: JsonMonitorProps) {
   const currentPayload = {
     documentId: docId || 'Empty / Not configured yet',
     responses: responses,
-    agent: "Agente Verde"
+    agent: 'Agente Verde'
   };
 
   return (

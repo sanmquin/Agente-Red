@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Settings, FileText, Check, Copy, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
-export default function DocSetup({ docId, setDocId, isDocValidated, setIsDocValidated }) {
-  const [isValidating, setIsValidating] = useState(false);
-  const [copiedText, setCopiedText] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+interface DocSetupProps {
+  docId: string;
+  setDocId: (id: string) => void;
+  isDocValidated: boolean;
+  setIsDocValidated: (validated: boolean) => void;
+}
 
-  const copyText = (text, key) => {
+export default function DocSetup({ docId, setDocId, isDocValidated, setIsDocValidated }: DocSetupProps) {
+  const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [copiedText, setCopiedText] = useState<string>('');
+  const [errorMsg, setErrorMsg] = useState<string>('');
+
+  const copyText = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedText(key);
     setTimeout(() => setCopiedText(''), 2000);
